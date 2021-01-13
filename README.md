@@ -8,3 +8,4 @@ The app contains a landing page that shows the distribution (depending on data t
 * Example sketch
 
 ![app_sketch]("/pics/housing_app_sketch.png")
+
