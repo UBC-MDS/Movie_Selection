@@ -1,4 +1,4 @@
-# CALIFORNIA HOUSING MAP
+# MOVIE SELECTION APP
 
 * Description (200-300 words)
 
@@ -7,5 +7,5 @@ The app contains a landing page that shows the distribution (depending on data t
 
 * Example sketch
 
-![app_sketch]("/pics/housing_app_sketch.png")
+![app_sketch]("/pics/app_sketch.png")
 
