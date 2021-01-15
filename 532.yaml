@@ -1,0 +1,13 @@
+name: '532'
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - ipykernel
+  - vega_datasets
+  - altair_saver
+  - backcall
+  - pip
+  - pip:
+    - canvasutils
+    - rpy2
