@@ -1,11 +1,5 @@
 # MOVIE SELECTION APP
 
-* Description (200-300 words)
+The app displays information on movie invesment startegies based on factors like genre, budget, revenue, studios, and top rated movies, etc. The target audience of this app are movie production companies and movie investors. On the left panel of the app, the users would be able to use the dropdown menu to select a genre and use a slide bar to choose budget range that suit their interest. Based on the selected genre and budget, the app will display average revenue and profit as highlighted text. The middle panel of the app shows the financials and voting average of the studios given selected genre and budget. After reviewing the performance of the studios, the users would be able to filter to their studio of interest by clicking on the dropdown menu on the right panel of the app. The app will then display the movie ratings and top 10 movies with name, profit, run time and vote average for the selected genre, budget and studio so that the investors would get an idea on the successful movies that suit their appetite. 
 
-{e.g}
-The app contains a landing page that shows the distribution (depending on data type, bar chart, density chart etc) of dataset factors (hypertension, physical disabilities etc.) colored coded according to whether patients showed up or didn't show up for an appointment. From a dropdown list, users can filter out variables from the distribution display, by patient demographics (i.e. only show female patients), by appointment data (i.e. if SMS was sent), and finally by the date range of appointments. A different dropdown menu will allow users to re-order variables according to the probability of patients being a no-show or in alphabetical order to comorbidities. Users can compare the distribution of co-morbidities by scrolling down through the app interface
-
-* Example sketch
-
-![app_sketch]("/pics/app_sketch.png")
-
+![app_sketch](/pics/app_sketch.png?raw=true)
