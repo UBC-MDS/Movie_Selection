@@ -6,8 +6,6 @@ import altair as alt
 import pandas as pd
 from vega_datasets import data
 
-app = dash.Dash(__name__, external_stylesheets=['https://codepen.io/chriddyp/pen/bWLwgP.css'])
-
 
 # Read in global data
 movies = pd.read_json("data/lab2-movies.json")
