@@ -8,7 +8,7 @@ from vega_datasets import data
 
 
 # Read in global data
-movies = pd.read_json("data/lab2-movies.json")
+movies = pd.read_json("../data/raw/lab2-movies.json")
 boom_movies = movies.explode('studios').explode('genres')
 
 # Setup app and layout/frontend
