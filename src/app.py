@@ -93,14 +93,18 @@ app.layout = dbc.Container(
                             ]
                         ),
                         dbc.Row(
-                            html.Iframe(
-                                id="vote-scatter-plot",
-                                style={
-                                    "border-width": "0",
-                                    "width": "100%",
-                                    "height": "300px",
-                                },
-                            )
+                            [
+                                dbc.Col(
+                                    html.Iframe(
+                                        id="vote-scatter-plot",
+                                        style={
+                                            "border-width": "0",
+                                            "width": "100%",
+                                            "height": "400px",
+                                        },
+                                    )
+                                )
+                            ]
                         ),
                         dbc.Row(
                             html.Iframe(
@@ -129,6 +133,7 @@ app.layout = dbc.Container(
     Output("vote-scatter-plot", "srcDoc"),
     Output("average-revenue", "children"),
     Output("average-vote", "children"),
+    Output("movies-data-frame", "srcDoc"),
     Input("xgenre-widget", "value"),
     Input("xbudget-widget", "value"),
 )
@@ -143,39 +148,49 @@ def plot_altair(xgenre, budget):  # to add xbudget later
     average_revenue = "${:,}".format(round(filtered_movies["revenue"].mean()))
     average_vote = str(round(filtered_movies["vote_average"].mean(), 1))
     vote_chart = (
-        alt.Chart(filtered_movies)
+        alt.Chart(filtered_movies, title=xgenre + " Movies Vote Average by Studios")
         .mark_boxplot(color="#20B2AA")
         .encode(
-            alt.X("vote_average"),
-            alt.Y("studios", sort=studios_by_revenue),
+            alt.X("vote_average", title="Vote Average"),
+            alt.Y("studios", sort=studios_by_revenue, title="Studios"),
             tooltip="title",
         )
         .interactive()
     )
 
     revenue_chart = (
-        alt.Chart(filtered_movies)
+        alt.Chart(filtered_movies, title=xgenre + " Movies Financials by Studios")
         .mark_boxplot(color="#20B2AA")
         .encode(
-            alt.X("revenue"),
-            alt.Y("studios", sort=studios_by_revenue),
+            alt.X("revenue", axis=alt.Axis(format="$s"), title="Revenue"),
+            alt.Y("studios", sort=studios_by_revenue, title="Studios"),
             tooltip="title",
         )
         .interactive()
     )
 
     vote_scatter_chart = (
-        alt.Chart(filtered_movies)
+        alt.Chart(filtered_movies, title=xgenre + " Movies")
         .mark_circle(color="#20B2AA")
-        .encode(alt.X("vote_average"), alt.Y("vote_count"), tooltip="title")
-        .interactive()
-    )
+        .encode(
+            alt.X("vote_average", title="Vote Average"),
+            alt.Y("vote_count", title="Vote Count"),
+            tooltip="title",
+        )
+        # .interactive(bind_y=False, bind_x=False)
+    )  # .properties(width=200, height=200)
+
+    top_movies_df = (filtered_movies.nlargest(10, ["vote_average"]))[
+        ["title", "vote_average", "revenue", "runtime"]
+    ]
+
     return (
         vote_chart.to_html(),
         revenue_chart.to_html(),
         vote_scatter_chart.to_html(),
         average_revenue,
         average_vote,
+        top_movies_df.to_html(index=False),
     )
 
 
