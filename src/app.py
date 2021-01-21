@@ -7,8 +7,7 @@ import pandas as pd
 import dash_bootstrap_components as dbc
 
 # Read in global data
-movies = pd.read_json("data/raw/lab2-movies.json")
-boom_movies = movies.explode("studios").explode("genres")
+movies = pd.read_csv("data/processed/movies.csv")
 
 # Setup app and layout/frontend
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -22,27 +21,37 @@ app.layout = dbc.Container(
             [
                 dbc.Col(
                     [
-                        dcc.Dropdown(
-                            id="xgenre-widget",
-                            value="Horror",  # REQUIRED to show the plot on the first page load
-                            options=[
-                                {"label": col, "value": col}
-                                for col in boom_movies["genres"].unique()
-                            ],
+                        html.Label(
+                            [
+                                "Select a genre",
+                                dcc.Dropdown(
+                                    id="xgenre-widget",
+                                    value="Horror",  # REQUIRED to show the plot on the first page load
+                                    options=[
+                                        {"label": col, "value": col}
+                                        for col in movies["genres"].unique()
+                                    ],
+                                ),
+                            ]
                         ),
                         html.Br(),
                         html.Br(),
-                        dcc.RangeSlider(
-                            id="xbudget-widget",
-                            min=10_000_000,
-                            max=300_000_000,
-                            value=[10_000_000, 300_000_000],
-                            marks={
-                                10_000_000: "10",
-                                100_000_000: "100",
-                                200_000_000: "200",
-                                300_000_000: "300M",
-                            },
+                        html.Label(
+                            [
+                                "Select a budget range",
+                                dcc.RangeSlider(
+                                    id="xbudget-widget",
+                                    min=10,
+                                    max=300,
+                                    value=[10, 300],
+                                    marks={
+                                        10: "10",
+                                        100: "100",
+                                        200: "200",
+                                        300: "300M",
+                                    },
+                                ),
+                            ]
                         ),
                         html.Br(),
                         html.Br(),
@@ -139,14 +148,16 @@ app.layout = dbc.Container(
 )
 def plot_altair(xgenre, budget):  # to add xbudget later
     studios_by_revenue = (
-        boom_movies.groupby("studios")["revenue"].median().sort_values().index.tolist()
+        movies.groupby("studios")["revenue"].median().sort_values().index.tolist()
     )
-    filtered_movies = boom_movies[boom_movies["genres"] == xgenre].query(
+    filtered_movies = movies[movies["genres"] == xgenre].query(
         "@budget[0] < budget and budget < @budget[1]"
     )
 
-    average_revenue = "${:,}".format(round(filtered_movies["revenue"].mean()))
+    average_revenue = "${:,.3f}M".format(filtered_movies["revenue"].mean())
+
     average_vote = str(round(filtered_movies["vote_average"].mean(), 1))
+
     vote_chart = (
         alt.Chart(filtered_movies, title=xgenre + " Movies Vote Average by Studios")
         .mark_boxplot(color="#20B2AA")
@@ -162,7 +173,7 @@ def plot_altair(xgenre, budget):  # to add xbudget later
         alt.Chart(filtered_movies, title=xgenre + " Movies Financials by Studios")
         .mark_boxplot(color="#20B2AA")
         .encode(
-            alt.X("revenue", axis=alt.Axis(format="$s"), title="Revenue"),
+            alt.X("revenue", title="Revenue (in Millions)"),
             alt.Y("studios", sort=studios_by_revenue, title="Studios"),
             tooltip="title",
         )
@@ -181,9 +192,19 @@ def plot_altair(xgenre, budget):  # to add xbudget later
     )  # .properties(width=200, height=200)
 
     top_movies_df = (filtered_movies.nlargest(10, ["vote_average"]))[
-        ["title", "vote_average", "revenue", "runtime"]
+        ["title", "vote_average", "profit", "runtime"]
     ]
 
+    top_movies_df.profit = round(top_movies_df.profit, 3)
+    top_movies_df.rename(
+        columns={
+            "title": "Title",
+            "vote_average": "Vote Average",
+            "profit": "Profit (in Millions)",
+            "runtime": "Runtime (min)",
+        },
+        inplace=True,
+    )
     return (
         vote_chart.to_html(),
         revenue_chart.to_html(),
