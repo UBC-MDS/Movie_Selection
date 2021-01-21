@@ -23,7 +23,7 @@ def main(datafile, out):
     movies = pd.read_json(datafile)
 
     # scale financials to millions
-    movies.bugdet = movies.budget/1000000
+    movies.budget = movies.budget/1000000
     movies.revenue = movies.revenue/1000000
 
     # spot corrections in financials for two movies
