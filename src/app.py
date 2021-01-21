@@ -7,9 +7,7 @@ import pandas as pd
 from vega_datasets import data
 import dash_bootstrap_components as dbc
 
-# Read in global data
-movies = pd.read_json("data/raw/lab2-movies.json")
-boom_movies = movies.explode('studios').explode('genres')
+
 
 # Setup app and layout/frontend
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
