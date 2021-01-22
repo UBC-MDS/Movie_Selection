@@ -18,13 +18,13 @@ SIDEBAR_STYLE = {
     "top": 0,
     "left": 0,
     "bottom": 0,
-    "width": "24rem",
+    "width": "20rem",
     "padding": "2rem 1rem",
     "z-index": 4000000
 }
 
 CONTENT_STYLE = {
-    "margin-left": "26rem",
+    "margin-left": "20rem",
     "margin-right": "2rem",
     "padding": "2rem 1rem",
     "z-index": -1
@@ -68,7 +68,7 @@ genre_graphs = html.Div([
                         style={
                             "border-width": "0",
                             "width": "100%",
-                            "height": 400
+                            "height": 265
                         },
                     )
                 )], 
@@ -87,7 +87,7 @@ genre_graphs = html.Div([
                         style={
                             "border-width": "0",
                             "width": "100%",
-                            "height": 400
+                            "height": 265
                         },
                     )
                 )],
@@ -112,7 +112,7 @@ studio_graphs = html.Div([
                         style={
                             "border-width": "0",
                             "width": "100%",
-                            "height": "400px",
+                            "height": "400px"
                         },
                     )
                 )],
@@ -242,13 +242,14 @@ def plot_altair(xgenre, budget):  # to add xbudget later
         .mark_boxplot(color="#20B2AA")
         .encode(
             alt.X("vote_average", title="Vote Average"),
-            alt.Y("studios", sort=studios_by_revenue, title="Studios"),
+            alt.Y("studios", sort=studios_by_revenue, title=None),
             tooltip="title",
         ).configure_axis(
-            labelFontSize=15,
-            titleFontSize=15
+            labelFontSize=12,
+            titleFontSize=12
         ).properties(
-            height=300
+            height=200,
+            width=250
         ).interactive()
     )
 
@@ -257,13 +258,14 @@ def plot_altair(xgenre, budget):  # to add xbudget later
         .mark_boxplot(color="#20B2AA")
         .encode(
             alt.X("revenue", title="Revenue (US$ mil)", axis=alt.Axis(format='$s')),
-            alt.Y("studios", sort=studios_by_revenue, title="Studios"),
+            alt.Y("studios", sort=studios_by_revenue, title=None),
             tooltip="title",
         ).configure_axis(
-            labelFontSize=15,
-            titleFontSize=15
+            labelFontSize=12,
+            titleFontSize=12
         ).properties(
-            height=300
+            height=200,
+            width=250
         ).interactive()
     )
 
@@ -275,9 +277,9 @@ def plot_altair(xgenre, budget):  # to add xbudget later
             alt.Y("vote_count", title="Vote Count"),
             tooltip="title",
         ).configure_axis(
-            labelFontSize=15,
-            titleFontSize=15
-        ).properties(width=800)
+            labelFontSize=12,
+            titleFontSize=12
+        ).properties(width=775)
     )  
 
     top_movies_df = (filtered_movies.nlargest(10, ["vote_average"]))[
@@ -289,7 +291,7 @@ def plot_altair(xgenre, budget):  # to add xbudget later
         columns={
             "title": "Title",
             "vote_average": "Vote Average",
-            "profit": "Profit (in Millions)",
+            "profit": "Profit (US$ mil)",
             "runtime": "Runtime (min)",
         },
         inplace=True,
@@ -301,7 +303,7 @@ def plot_altair(xgenre, budget):  # to add xbudget later
         average_revenue,
         f'{xgenre} Movies Vote Average By Studio',
         f'{xgenre} Movies Financials By Studio',
-        f'Voting Profile For {xgenre}',
+        f'Voting Profile For {xgenre} Movies',
         f'Most Popular {xgenre} Movies (By Vote Average)',
         average_vote,
         dbc.Table.from_dataframe(
@@ -315,10 +317,3 @@ def plot_altair(xgenre, budget):  # to add xbudget later
 
 if __name__ == "__main__":
     app.run_server(debug=True)
-
-
-# Notes
-# 1. how to shorten call back
-# 2. how to incorporate rangeslicer
-# 3. formating card
-# 4. overall aesthetic (esp left column)
