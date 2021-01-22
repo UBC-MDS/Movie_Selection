@@ -10,128 +10,181 @@ import dash_bootstrap_components as dbc
 movies = pd.read_csv("data/processed/movies.csv")
 
 # Setup app and layout/frontend
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
-app.layout = dbc.Container(
+app = dash.Dash(external_stylesheets=[dbc.themes.LUMEN])
+
+SIDEBAR_STYLE = {
+    "position": "fixed",
+    "top": 0,
+    "left": 0,
+    "bottom": 0,
+    "width": "24rem",
+    "padding": "2rem 1rem",
+    "background-color": "#f8f9fa",
+    "z-index": 4000000
+}
+
+CONTENT_STYLE = {
+    "margin-left": "26rem",
+    "margin-right": "2rem",
+    "padding": "2rem 1rem",
+    "z-index": -1
+}
+
+
+cards = dbc.CardDeck(
     [
-        html.H1("MOVIE SELECTION"),
-        html.P(
-            "A data visualization app that allows decision makers in the streaming companies to explore a dataset of movies to determine the popular movies that they need to provide to their users"
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H6("Average box office value", className='card-title'),
+                    html.H4(id="average-revenue", className='card-text'),
+                ]
+            ),
+            color="primary",
+            outline=True
         ),
-        dbc.Row(
-            [
-                dbc.Col(
-                    [
-                        html.Label(
-                            [
-                                "Select a genre",
-                                dcc.Dropdown(
-                                    id="xgenre-widget",
-                                    value="Horror",  # REQUIRED to show the plot on the first page load
-                                    options=[
-                                        {"label": col, "value": col}
-                                        for col in movies["genres"].unique()
-                                    ],
-                                ),
-                            ]
-                        ),
-                        html.Br(),
-                        html.Br(),
-                        html.Label(
-                            [
-                                "Select a budget range",
-                                dcc.RangeSlider(
-                                    id="xbudget-widget",
-                                    min=10,
-                                    max=300,
-                                    value=[10, 300],
-                                    marks={
-                                        10: "10",
-                                        100: "100",
-                                        200: "200",
-                                        300: "300M",
-                                    },
-                                ),
-                            ]
-                        ),
-                        html.Br(),
-                        html.Br(),
-                        dbc.Card(
-                            dbc.CardBody(
-                                [
-                                    html.H6("Average box office value"),
-                                    html.Div(id="average-revenue"),
-                                ]
-                            ),
-                            color="light",
-                        ),
-                        html.Br(),
-                        html.Br(),
-                        dbc.Card(
-                            dbc.CardBody(
-                                [html.H6("Average voting"), html.Div(id="average-vote")]
-                            ),
-                            color="light",
-                        ),
-                    ],
-                    md=2,
-                ),
-                dbc.Col(
-                    [
-                        dbc.Row(
-                            [
-                                dbc.Col(
-                                    html.Iframe(
-                                        id="vote-plot",
-                                        style={
-                                            "border-width": "0",
-                                            "width": "150%",
-                                            "height": "300px",
-                                        },
-                                    )
-                                ),
-                                dbc.Col(
-                                    html.Iframe(
-                                        id="revenue-plot",
-                                        style={
-                                            "border-width": "0",
-                                            "width": "150%",
-                                            "height": "300px",
-                                        },
-                                    )
-                                ),
-                            ]
-                        ),
-                        dbc.Row(
-                            [
-                                dbc.Col(
-                                    html.Iframe(
-                                        id="vote-scatter-plot",
-                                        style={
-                                            "border-width": "0",
-                                            "width": "100%",
-                                            "height": "400px",
-                                        },
-                                    )
-                                )
-                            ]
-                        ),
-                        dbc.Row(
-                            html.Iframe(
-                                id="movies-data-frame",
-                                style={
-                                    "border-width": "0",
-                                    "width": "100%",
-                                    "height": "300px",
-                                },
-                            )
-                        ),
-                    ]
-                ),
-            ]
-        ),
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H6("Average voting", className='card-title'), 
+                    html.H4(id="average-vote", className='card-text')]
+            ),
+            color="primary",
+            outline=True
+        )
     ]
 )
 
+genre_graphs = html.Div([
+    dbc.Row([
+        dbc.Col(
+            dbc.Card(
+                dbc.CardBody(
+                    html.Iframe(
+                        id="vote-plot",
+                        style={
+                            "border-width": "0",
+                            "width": "100%",
+                            "height": 400
+                        },
+                    )
+                ), 
+                color="success",
+                outline=True
+            )
+        ),
+        dbc.Col(
+            dbc.Card(
+                dbc.CardBody(
+                    html.Iframe(
+                        id="revenue-plot",
+                        style={
+                            "border-width": "0",
+                            "width": "100%",
+                            "height": 400
+                        },
+                    )
+                ),
+                color="success",
+                outline=True
+            )
+        )
+    ])
+])
+
+studio_graphs = html.Div([
+    dbc.Row([
+        dbc.Col(
+            dbc.Card(
+                html.Iframe(
+                    id="vote-scatter-plot",
+                    style={
+                        "border-width": "0",
+                        "width": "100%",
+                        "height": "400px",
+                    },
+                ),
+                color="info",
+                outline=True
+            ), 
+        )
+    ]),
+    html.Br(),
+    html.Br(),
+    dbc.Row([
+        dbc.Col(
+            dbc.Card(
+                html.Div(
+                    id="movies-data-frame"
+                ),
+                color="info",
+                outline=True
+            )
+        )
+    ])
+])
+
+content = html.Div([
+    cards,
+    html.Br(),
+    html.Br(),
+    genre_graphs,
+    html.Br(),
+    html.Br(),
+    studio_graphs
+], id="page-content", style=CONTENT_STYLE)
+
+controls = dbc.Card(
+    [
+        dbc.FormGroup(
+            [
+                dbc.Label("Genre"),
+                dcc.Dropdown(
+                    id="xgenre-widget",
+                    value="Horror",  # REQUIRED to show the plot on the first page load
+                    options=[
+                        {"label": col, "value": col}
+                        for col in movies["genres"].unique()
+                    ],
+                    clearable=False
+                ),
+            ]
+        ),
+        dbc.FormGroup(
+            [
+                dbc.Label("Budget Range"),
+                dcc.RangeSlider(
+                    id="xbudget-widget",
+                    min=10,
+                    max=300,
+                    value=[10, 300],
+                    marks={
+                        10: "10",
+                        100: "100",
+                        200: "200",
+                        300: "300M",
+                    },
+                ),
+            ]
+        ),
+    ],
+    body=True,
+)
+
+sidebar = html.Div(
+    [
+        html.H2("Movie Selection", className="display-4"),
+        html.Hr(),
+        controls,
+        html.Hr(),
+        html.P(
+            "A data visualization app that allows decision makers in the streaming companies to explore a dataset of movies to determine the popular movies that they need to provide to their users",
+            className="lead"
+        ),
+    ],
+    style=SIDEBAR_STYLE,
+)
+app.layout = html.Div([sidebar, content])
 
 # Set up callbacks/backend
 
@@ -142,7 +195,7 @@ app.layout = dbc.Container(
     Output("vote-scatter-plot", "srcDoc"),
     Output("average-revenue", "children"),
     Output("average-vote", "children"),
-    Output("movies-data-frame", "srcDoc"),
+    Output("movies-data-frame", "children"),
     Input("xgenre-widget", "value"),
     Input("xbudget-widget", "value"),
 )
@@ -165,19 +218,21 @@ def plot_altair(xgenre, budget):  # to add xbudget later
             alt.X("vote_average", title="Vote Average"),
             alt.Y("studios", sort=studios_by_revenue, title="Studios"),
             tooltip="title",
-        )
-        .interactive()
+        ).properties(
+            height=300
+        ).interactive()
     )
 
     revenue_chart = (
         alt.Chart(filtered_movies, title=xgenre + " Movies Financials by Studios")
         .mark_boxplot(color="#20B2AA")
         .encode(
-            alt.X("revenue", title="Revenue (in Millions)"),
+            alt.X("revenue", title="Revenue (in Millions)", axis=alt.Axis(format='$s')),
             alt.Y("studios", sort=studios_by_revenue, title="Studios"),
             tooltip="title",
-        )
-        .interactive()
+        ).properties(
+            height=300
+        ).interactive()
     )
 
     vote_scatter_chart = (
@@ -187,7 +242,7 @@ def plot_altair(xgenre, budget):  # to add xbudget later
             alt.X("vote_average", title="Vote Average"),
             alt.Y("vote_count", title="Vote Count"),
             tooltip="title",
-        )
+        ).properties(width=800)
         # .interactive(bind_y=False, bind_x=False)
     )  # .properties(width=200, height=200)
 
@@ -211,7 +266,12 @@ def plot_altair(xgenre, budget):  # to add xbudget later
         vote_scatter_chart.to_html(),
         average_revenue,
         average_vote,
-        top_movies_df.to_html(index=False),
+        dbc.Table.from_dataframe(
+                top_movies_df,
+                striped=True,
+                bordered=True,
+                hover=True
+        )
     )
 
 
