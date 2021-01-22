@@ -11,6 +11,7 @@ movies = pd.read_csv("data/processed/movies.csv")
 
 # Setup app and layout/frontend
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server
 app.layout = dbc.Container(
     [
         html.H1("MOVIE SELECTION"),
