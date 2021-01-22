@@ -10,7 +10,7 @@ import dash_bootstrap_components as dbc
 movies = pd.read_csv("data/processed/movies.csv")
 
 # Setup app and layout/frontend
-app = dash.Dash(external_stylesheets=[dbc.themes.LUMEN])
+app = dash.Dash(external_stylesheets=[dbc.themes.MATERIA])
 
 SIDEBAR_STYLE = {
     "position": "fixed",
@@ -19,7 +19,6 @@ SIDEBAR_STYLE = {
     "bottom": 0,
     "width": "24rem",
     "padding": "2rem 1rem",
-    "background-color": "#f8f9fa",
     "z-index": 4000000
 }
 
@@ -169,6 +168,7 @@ controls = dbc.Card(
         ),
     ],
     body=True,
+    className="text-dark"
 )
 
 sidebar = html.Div(
@@ -183,6 +183,7 @@ sidebar = html.Div(
         ),
     ],
     style=SIDEBAR_STYLE,
+    className='bg-primary text-white'
 )
 app.layout = html.Div([sidebar, content])
 
