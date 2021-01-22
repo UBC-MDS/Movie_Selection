@@ -10,7 +10,7 @@ import dash_bootstrap_components as dbc
 movies = pd.read_csv("data/processed/movies.csv")
 
 # Setup app and layout/frontend
-app = dash.Dash(external_stylesheets=[dbc.themes.MATERIA])
+app = dash.Dash(external_stylesheets=[dbc.themes.LUMEN])
 
 SIDEBAR_STYLE = {
     "position": "fixed",
@@ -58,6 +58,9 @@ genre_graphs = html.Div([
     dbc.Row([
         dbc.Col(
             dbc.Card(
+                [dbc.CardHeader(
+                    html.H4(id="vote-plot-title")
+                ),
                 dbc.CardBody(
                     html.Iframe(
                         id="vote-plot",
@@ -67,13 +70,16 @@ genre_graphs = html.Div([
                             "height": 400
                         },
                     )
-                ), 
+                )], 
                 color="success",
                 outline=True
             )
         ),
         dbc.Col(
             dbc.Card(
+                [dbc.CardHeader(
+                    html.H4(id="revenue-plot-title")
+                ),
                 dbc.CardBody(
                     html.Iframe(
                         id="revenue-plot",
@@ -83,7 +89,7 @@ genre_graphs = html.Div([
                             "height": 400
                         },
                     )
-                ),
+                )],
                 color="success",
                 outline=True
             )
@@ -95,14 +101,20 @@ studio_graphs = html.Div([
     dbc.Row([
         dbc.Col(
             dbc.Card(
-                html.Iframe(
-                    id="vote-scatter-plot",
-                    style={
-                        "border-width": "0",
-                        "width": "100%",
-                        "height": "400px",
-                    },
+                [
+                dbc.CardHeader(
+                    html.H4(id="vote-scatter-title")
                 ),
+                dbc.CardBody(
+                    html.Iframe(
+                        id="vote-scatter-plot",
+                        style={
+                            "border-width": "0",
+                            "width": "100%",
+                            "height": "400px",
+                        },
+                    )
+                )],
                 color="info",
                 outline=True
             ), 
@@ -113,9 +125,17 @@ studio_graphs = html.Div([
     dbc.Row([
         dbc.Col(
             dbc.Card(
-                html.Div(
-                    id="movies-data-frame"
-                ),
+                [
+                    dbc.CardHeader(
+                        html.H4(id="table-title")
+                    ),
+                    dbc.CardBody(
+                        html.Div(
+                            id="movies-data-frame"
+                        )
+                    )
+                ]
+                ,
                 color="info",
                 outline=True
             )
@@ -151,7 +171,7 @@ controls = dbc.Card(
         ),
         dbc.FormGroup(
             [
-                dbc.Label("Budget Range"),
+                dbc.Label("Budget Range (US$ mil)"),
                 dcc.RangeSlider(
                     id="xbudget-widget",
                     min=10,
@@ -161,7 +181,7 @@ controls = dbc.Card(
                         10: "10",
                         100: "100",
                         200: "200",
-                        300: "300M",
+                        300: "300",
                     },
                 ),
             ]
@@ -195,6 +215,10 @@ app.layout = html.Div([sidebar, content])
     Output("revenue-plot", "srcDoc"),
     Output("vote-scatter-plot", "srcDoc"),
     Output("average-revenue", "children"),
+    Output("vote-plot-title", 'children'),
+    Output("revenue-plot-title", 'children'),
+    Output("vote-scatter-title", 'children'),
+    Output("table-title", 'children'),
     Output("average-vote", "children"),
     Output("movies-data-frame", "children"),
     Input("xgenre-widget", "value"),
@@ -208,44 +232,52 @@ def plot_altair(xgenre, budget):  # to add xbudget later
         "@budget[0] < budget and budget < @budget[1]"
     )
 
-    average_revenue = "${:,.3f}M".format(filtered_movies["revenue"].mean())
+    average_revenue = "US${:,.2f} mil".format(filtered_movies["revenue"].mean())
 
     average_vote = str(round(filtered_movies["vote_average"].mean(), 1))
 
     vote_chart = (
-        alt.Chart(filtered_movies, title=xgenre + " Movies Vote Average by Studios")
+        alt.Chart(filtered_movies)
         .mark_boxplot(color="#20B2AA")
         .encode(
             alt.X("vote_average", title="Vote Average"),
             alt.Y("studios", sort=studios_by_revenue, title="Studios"),
             tooltip="title",
+        ).configure_axis(
+            labelFontSize=15,
+            titleFontSize=15
         ).properties(
             height=300
         ).interactive()
     )
 
     revenue_chart = (
-        alt.Chart(filtered_movies, title=xgenre + " Movies Financials by Studios")
+        alt.Chart(filtered_movies)
         .mark_boxplot(color="#20B2AA")
         .encode(
-            alt.X("revenue", title="Revenue (in Millions)", axis=alt.Axis(format='$s')),
+            alt.X("revenue", title="Revenue (US$ mil)", axis=alt.Axis(format='$s')),
             alt.Y("studios", sort=studios_by_revenue, title="Studios"),
             tooltip="title",
+        ).configure_axis(
+            labelFontSize=15,
+            titleFontSize=15
         ).properties(
             height=300
         ).interactive()
     )
 
     vote_scatter_chart = (
-        alt.Chart(filtered_movies, title=xgenre + " Movies")
+        alt.Chart(filtered_movies)
         .mark_circle(color="#20B2AA")
         .encode(
             alt.X("vote_average", title="Vote Average"),
             alt.Y("vote_count", title="Vote Count"),
             tooltip="title",
+        ).configure_axis(
+            labelFontSize=15,
+            titleFontSize=15
         ).properties(width=800)
-        # .interactive(bind_y=False, bind_x=False)
-    )  # .properties(width=200, height=200)
+    )  
 
     top_movies_df = (filtered_movies.nlargest(10, ["vote_average"]))[
         ["title", "vote_average", "profit", "runtime"]
@@ -266,6 +298,10 @@ def plot_altair(xgenre, budget):  # to add xbudget later
         revenue_chart.to_html(),
         vote_scatter_chart.to_html(),
         average_revenue,
+        f'{xgenre} Movies Vote Average By Studio',
+        f'{xgenre} Movies Financials By Studio',
+        f'Voting Profile For {xgenre}',
+        f'Most Popular {xgenre} Movies (By Vote Average)',
         average_vote,
         dbc.Table.from_dataframe(
                 top_movies_df,
