@@ -1,6 +1,6 @@
 # Movie Selection App 
 
-The Movie Selection App assists movie investors in selecting the popular and profitable movies for each genre and compare different production studios. You can view the currently deployed version [here](https://movie-selection-app.herokuapp.com/)
+The Movie Selection App assists movie investors in selecting the popular and profitable movies for each genre and a specified budget range and compare different production studios. You can view the currently deployed version [here](https://movie-selection-app.herokuapp.com/)
 
 ## Contributors: DSCI_532_group7
 
@@ -45,6 +45,6 @@ to get started.
 
 ## Code of conduct
 
-In the interest of fostering an open and welcoming environment, we as contributors and maintainers pledge to making participation in our project and our community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, or sexual identity and orientation.
-[`CODE_OF_CONDUCT.md`](https://github.com/UBC-MDS/Movie_Selection/blob/main/CODE_OF_CONDUCT.md).
+In the interest of fostering an open and welcoming environment, we as contributors and maintainers pledge to making participation in our project and our community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, or sexual identity and orientation. Detailed descriptions
+of these points can be found in [`CODE_OF_CONDUCT.md`](https://github.com/UBC-MDS/Movie_Selection/blob/main/CODE_OF_CONDUCT.md).
 
