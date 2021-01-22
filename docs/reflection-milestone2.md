@@ -3,7 +3,7 @@
 *By **DSCI 532 Group 7***
 
 ## What we have implemented
-We have built the app that largely follows what is set out in our earlier proposal and app sketch. We have taken in the feedbacks from our TA to make certain strategic changes to the layout of the apps to improve its story flow. In specific, we have decided to put the scatter plot and the table below the two high-level boxplot charts about the overall voting activity and financials by studios. All our control widgets like DropDown or RangeSlicer are put on one side for clearer layout.
+We have built the app that largely follows what is set out in our earlier proposal and app sketch. We have taken in the feedbacks from our TA to make certain strategic changes to the layout of the apps to improve its story flow. In specific, we have decided to put the scatter plot and the table below the two high-level boxplot charts about the overall voting activity and financials by studios. All our control widgets like DropDown or RangeSlider are put on one side for clearer layout.
 
 We think the summary cards also provide a quick numerical summary for the data displayed on the right.
 
