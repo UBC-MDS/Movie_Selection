@@ -10,7 +10,7 @@ import dash_bootstrap_components as dbc
 movies = pd.read_csv("data/processed/movies.csv")
 
 # Setup app and layout/frontend
-app = dash.Dash(external_stylesheets=[dbc.themes.LUMEN])
+app = dash.Dash(__name__, title='Movie Selection', external_stylesheets=[dbc.themes.LUMEN])
 server = app.server
 
 SIDEBAR_STYLE = {
@@ -151,7 +151,14 @@ content = html.Div([
     genre_graphs,
     html.Br(),
     html.Br(),
-    studio_graphs
+    studio_graphs,
+    html.Hr(),
+    html.P(f'''
+    This app was made by Group7 Consulting Co using data compiled by Joel Ostblom with permission. 
+    Our team includes Alex, Asma, Peter and Vignesh.
+    The app follows MIT's license and was last updated on 6 February 2021. 
+    Its GitHub repository can be found at: https://github.com/UBC-MDS/Movie_Selection.
+    ''')
 ], id="page-content", style=CONTENT_STYLE)
 
 controls = dbc.Card(
