@@ -1,10 +1,17 @@
 import dash
+import dash_table as dt
 import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output
 import altair as alt
 import pandas as pd
 import dash_bootstrap_components as dbc
+import plotly.express as px
+import plotly.io as pio
+import plotly.graph_objects as go
+
+pio.templates.default = 'simple_white'
+
 
 # Read in global data
 movies = pd.read_csv("data/processed/movies.csv")
@@ -36,12 +43,22 @@ cards = dbc.CardDeck(
         dbc.Card(
             dbc.CardBody(
                 [
+                    html.H6("Average Profit", className='card-title'),
+                    html.H4(id='average-profit', className='card-text')
+                ]
+            ),
+            color='primary',
+            outline=True
+        ),
+        dbc.Card(
+            dbc.CardBody(
+                [
                     html.H6("Average box office value", className='card-title'),
                     html.H4(id="average-revenue", className='card-text'),
                 ]
             ),
             color="primary",
-            outline=True
+            outline=True,
         ),
         dbc.Card(
             dbc.CardBody(
@@ -51,51 +68,46 @@ cards = dbc.CardDeck(
             ),
             color="primary",
             outline=True
-        )
+        ),
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H6("Vote Count", className='card-title'),
+                    html.H4(id='vote-count', className='card-text')
+                ]
+            ),
+            color='primary',
+            outline=True
+        ),
     ]
 )
 
-genre_graphs = html.Div([
-    dbc.Row([
-        dbc.Col(
-            dbc.Card(
-                [dbc.CardHeader(
-                    html.H4(id="vote-plot-title")
-                ),
-                dbc.CardBody(
-                    html.Iframe(
-                        id="vote-plot",
-                        style={
-                            "border-width": "0",
-                            "width": "100%",
-                            "height": 265
-                        },
-                    )
-                )], 
-                color="success",
-                outline=True
-            )
+
+genre_graphs = dbc.CardDeck([
+    dbc.Card(
+        [dbc.CardHeader(
+            html.H4(id="vote-plot-title")
         ),
-        dbc.Col(
-            dbc.Card(
-                [dbc.CardHeader(
-                    html.H4(id="revenue-plot-title")
-                ),
-                dbc.CardBody(
-                    html.Iframe(
-                        id="revenue-plot",
-                        style={
-                            "border-width": "0",
-                            "width": "100%",
-                            "height": 265
-                        },
-                    )
-                )],
-                color="success",
-                outline=True
+        dbc.CardBody(
+            dcc.Graph(
+                id='vote-plot',
             )
-        )
-    ])
+        )], 
+        color="success",
+        outline=True
+    ),
+    dbc.Card(
+        [dbc.CardHeader(
+            html.H4(id="revenue-plot-title")
+        ),
+        dbc.CardBody(
+            dcc.Graph(
+                id="revenue-plot"
+            )
+        )],
+        color="success",
+        outline=True
+    )
 ])
 
 studio_graphs = html.Div([
@@ -107,13 +119,8 @@ studio_graphs = html.Div([
                     html.H4(id="vote-scatter-title")
                 ),
                 dbc.CardBody(
-                    html.Iframe(
+                    dcc.Graph(
                         id="vote-scatter-plot",
-                        style={
-                            "border-width": "0",
-                            "width": "100%",
-                            "height": "400px"
-                        },
                     )
                 )],
                 color="info",
@@ -217,22 +224,25 @@ app.layout = html.Div([sidebar, content])
 
 # Set up callbacks/backend
 
-
 @app.callback(
-    Output("vote-plot", "srcDoc"),
-    Output("revenue-plot", "srcDoc"),
-    Output("vote-scatter-plot", "srcDoc"),
+    Output("vote-plot", "figure"),
+    Output("revenue-plot", "figure"),
+    Output("vote-scatter-plot", "figure"),
     Output("average-revenue", "children"),
     Output("vote-plot-title", 'children'),
     Output("revenue-plot-title", 'children'),
     Output("vote-scatter-title", 'children'),
     Output("table-title", 'children'),
     Output("average-vote", "children"),
+    Output("vote-count", "children"),
+    Output("average-profit", "children"),
     Output("movies-data-frame", "children"),
     Input("xgenre-widget", "value"),
     Input("xbudget-widget", "value"),
+    Input('revenue-plot', 'selectedData'),
+    Input('vote-plot', 'selectedData')
 )
-def plot_altair(xgenre, budget):  # to add xbudget later
+def plot_altair(xgenre, budget, revenue_selected, vote_selected):  # to add xbudget later
     studios_by_revenue = (
         movies.groupby("studios")["revenue"].median().sort_values().index.tolist()
     )
@@ -240,56 +250,38 @@ def plot_altair(xgenre, budget):  # to add xbudget later
         "@budget[0] < budget and budget < @budget[1]"
     )
 
+    # Cards
     average_revenue = "US${:,.2f} mil".format(filtered_movies["revenue"].mean())
-
+    average_profit = "US${:,.2f} mil".format(filtered_movies["profit"].mean())
     average_vote = str(round(filtered_movies["vote_average"].mean(), 1))
+    vote_count = str(round(filtered_movies['vote_count'].mean(), 1))
 
-    vote_chart = (
-        alt.Chart(filtered_movies)
-        .mark_boxplot(color="#20B2AA")
-        .encode(
-            alt.X("vote_average", title="Vote Average"),
-            alt.Y("studios", sort=studios_by_revenue, title=None),
-            tooltip="title",
-        ).configure_axis(
-            labelFontSize=12,
-            titleFontSize=12
-        ).properties(
-            height=200,
-            width=250
-        ).interactive()
-    )
+    # Genre graphs
 
-    revenue_chart = (
-        alt.Chart(filtered_movies)
-        .mark_boxplot(color="#20B2AA")
-        .encode(
-            alt.X("revenue", title="Revenue (US$ mil)", axis=alt.Axis(format='$s')),
-            alt.Y("studios", sort=studios_by_revenue, title=None),
-            tooltip="title",
-        ).configure_axis(
-            labelFontSize=12,
-            titleFontSize=12
-        ).properties(
-            height=200,
-            width=250
-        ).interactive()
-    )
 
-    vote_scatter_chart = (
-        alt.Chart(filtered_movies)
-        .mark_circle(color="#20B2AA")
-        .encode(
-            alt.X("vote_average", title="Vote Average"),
-            alt.Y("vote_count", title="Vote Count"),
-            tooltip="title",
-        ).configure_axis(
-            labelFontSize=12,
-            titleFontSize=12
-        ).properties(width=775)
-    )  
 
-    top_movies_df = (filtered_movies.nlargest(10, ["vote_average"]))[
+    vote_chart = px.box(filtered_movies, x='vote_average', y = 'studios')
+    vote_chart.add_bar(x=[filtered_movies.vote_average.max()] * filtered_movies.studios.nunique(), y = filtered_movies.studios.unique(), orientation='h', opacity=0.0001, hoverinfo='none', showlegend=False)
+    vote_chart.update_layout(clickmode='event+select')
+    revenue_chart = px.box(filtered_movies, x='revenue', y = 'studios')
+    revenue_chart.add_bar(x=[filtered_movies.revenue.max()] * filtered_movies.studios.nunique(), y = filtered_movies.studios.unique(), orientation='h', opacity=0.0001, hoverinfo='none', showlegend=False)
+    revenue_chart.update_layout(clickmode='event+select')
+
+    studios_list = []
+
+    if revenue_selected is not None:
+        studios_list += [point['y'] for point in revenue_selected['points']]
+
+    if vote_selected is not None:
+        studios_list += [point['y'] for point in vote_selected['points']]
+
+    if not studios_list:
+        studios_list = filtered_movies.studios.unique()
+    
+    studio_movies = filtered_movies[filtered_movies['studios'].isin(studios_list)]
+    vote_scatter_chart = px.scatter(studio_movies, x='vote_average', y='vote_count')
+
+    top_movies_df = (studio_movies.nlargest(10, ["vote_average"]))[
         ["title", "vote_average", "profit", "runtime"]
     ]
 
@@ -304,15 +296,17 @@ def plot_altair(xgenre, budget):  # to add xbudget later
         inplace=True,
     )
     return (
-        vote_chart.to_html(),
-        revenue_chart.to_html(),
-        vote_scatter_chart.to_html(),
+        vote_chart,
+        revenue_chart,
+        vote_scatter_chart,
         average_revenue,
         f'{xgenre} Movies Vote Average By Studio',
         f'{xgenre} Movies Financials By Studio',
         f'Voting Profile For {xgenre} Movies',
         f'Most Popular {xgenre} Movies (By Vote Average)',
         average_vote,
+        vote_count,
+        average_profit,
         dbc.Table.from_dataframe(
                 top_movies_df,
                 striped=True,
