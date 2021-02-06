@@ -46,7 +46,7 @@ cards = dbc.CardDeck(
         dbc.Card(
             dbc.CardBody(
                 [
-                    html.H6("Average Voting", className="card-title"),
+                    html.H6("Average Vote", className="card-title"),
                     html.H4(id="average-vote", className="card-text"),
                 ]
             ),
@@ -56,18 +56,8 @@ cards = dbc.CardDeck(
         dbc.Card(
             dbc.CardBody(
                 [
-                    html.H6("Vote Count", className="card-title"),
+                    html.H6("Average Vote Count", className="card-title"),
                     html.H4(id="vote-count", className="card-text"),
-                ]
-            ),
-            color="primary",
-            outline=True,
-        ),
-        dbc.Card(
-            dbc.CardBody(
-                [
-                    html.H6("Average Profit", className="card-title"),
-                    html.H4(id="average-profit", className="card-text"),
                 ]
             ),
             color="primary",
@@ -83,6 +73,17 @@ cards = dbc.CardDeck(
             color="primary",
             outline=True,
         ),
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H6("Average Profit", className="card-title"),
+                    html.H4(id="average-profit", className="card-text"),
+                ]
+            ),
+            color="primary",
+            outline=True,
+        ),
+
     ]
 )
 
@@ -295,18 +296,17 @@ def plot_altair(
     vote_count = str(round(filtered_movies["vote_count"].mean()))
 
     # Genre graphs
-
     
     studios_list = []
     studios_str = ""
 
     if revenue_selected is not None:
-        studios_list += [point["y"] for point in revenue_selected["points"]]
-        studios_str = "for the Studios: "
+        studios_list = [point["y"] for point in revenue_selected["points"]]
+        studios_str = "for "
         studios_str += ", ".join(studios_list)
     if vote_selected is not None:
-        studios_list += [point["y"] for point in vote_selected["points"]]
-        studios_str = "for the Studios: "
+        studios_list = [point["y"] for point in vote_selected["points"]]
+        studios_str = "for "
         studios_str += ", ".join(studios_list)
 
     if not studios_list:
@@ -339,7 +339,7 @@ def plot_altair(
         line_dash="dash",
         line_color="green",
         annotation_text="Mean Vote Average",
-        annotation_position="top right",
+        annotation_position="top",
         annotation_font_color="green",
         annotation_font_size=10,
     )
@@ -369,7 +369,7 @@ def plot_altair(
         line_dash="dash",
         line_color="green",
         annotation_text="Mean Revenue",
-        annotation_position="top right",
+        annotation_position="top",
         annotation_font_color="green",
         annotation_font_size=10,
     )
@@ -381,6 +381,7 @@ def plot_altair(
         x="vote_average",
         y="vote_count",
         labels={"vote_count": "Vote Count", "vote_average": "Vote Average"},
+        hover_name="title"
     )
 
     top_movies_df = (studio_movies.nlargest(10, ["vote_average"]))[
