@@ -46,7 +46,7 @@ cards = dbc.CardDeck(
         dbc.Card(
             dbc.CardBody(
                 [
-                    html.H6("Average Voting", className="card-title"),
+                    html.H6("Average Vote", className="card-title"),
                     html.H4(id="average-vote", className="card-text"),
                 ]
             ),
@@ -56,18 +56,8 @@ cards = dbc.CardDeck(
         dbc.Card(
             dbc.CardBody(
                 [
-                    html.H6("Vote Count", className="card-title"),
+                    html.H6("Average Vote Count", className="card-title"),
                     html.H4(id="vote-count", className="card-text"),
-                ]
-            ),
-            color="primary",
-            outline=True,
-        ),
-        dbc.Card(
-            dbc.CardBody(
-                [
-                    html.H6("Average Profit", className="card-title"),
-                    html.H4(id="average-profit", className="card-text"),
                 ]
             ),
             color="primary",
@@ -83,6 +73,17 @@ cards = dbc.CardDeck(
             color="primary",
             outline=True,
         ),
+        dbc.Card(
+            dbc.CardBody(
+                [
+                    html.H6("Average Profit", className="card-title"),
+                    html.H4(id="average-profit", className="card-text"),
+                ]
+            ),
+            color="primary",
+            outline=True,
+        ),
+
     ]
 )
 
@@ -129,7 +130,7 @@ studio_graphs = dbc.CardDeck(
         dbc.Card(
             [
                 dbc.CardHeader(html.H4(id="table-title")),
-                dbc.CardBody(html.Div(id="movies-data-frame")),
+                dbc.CardBody([html.Div(id="movies-data-frame")]),
             ],
             color="info",
             outline=True,
@@ -177,6 +178,26 @@ studio_graphs = dbc.CardDeck(
 #     ]
 # )
 
+studio_guide_bar = dbc.Card(
+    [
+        dbc.CardHeader(
+            dcc.Markdown(
+                """
+                To view the Voting Profile and Most popular movies for a particular studio, please click on its boxplot. 
+                The dark blue shade would be on the chart you selected, the light blue will be for the corresponding change of the other chart.
+
+                To unselect the studios and revert to general view, please double click on the box plot.
+
+                You can change your studio of choice by clicking another boxplot. 
+                        
+                """
+            )    
+        ),
+    ],
+    color="info",
+    outline=True,
+)
+
 content = html.Div(
     [
         cards,
@@ -184,15 +205,16 @@ content = html.Div(
         html.Br(),
         genre_graphs,
         html.Br(),
+        studio_guide_bar,
         html.Br(),
         studio_graphs,
         html.Hr(),
         dcc.Markdown(
             """
-    This app was made by Group7 Consulting Co using [data](https://github.com/UBC-MDS/Movie_Selection/blob/main/data/raw/lab2-movies.json) compiled from a [Kaggle dataset](https://www.kaggle.com/rounakbanik/the-movies-dataset?select=movies_metadata.csv) by [Joel Ostblom](https://github.com/joelostblom) with permission. 
-    Our team includes [Alex](https://github.com/athy9193), [Asma](https://github.com/anodaini), [Peter](https://github.com/xudongyang2) and [Vignesh](https://github.com/vigneshRajakumar).
-    The app follows [MIT's license](https://github.com/UBC-MDS/Movie_Selection/blob/main/LICENSE) and the source code can be found on [GitHub](https://github.com/UBC-MDS/Movie_Selection).
-    """
+            This app was made by Group7 Consulting Co using [data](https://github.com/UBC-MDS/Movie_Selection/blob/main/data/raw/lab2-movies.json) compiled from a [Kaggle dataset](https://www.kaggle.com/rounakbanik/the-movies-dataset?select=movies_metadata.csv) by [Joel Ostblom](https://github.com/joelostblom) with permission. 
+            Our team includes [Alex](https://github.com/athy9193), [Asma](https://github.com/anodaini), [Peter](https://github.com/xudongyang2) and [Vignesh](https://github.com/vigneshRajakumar).
+            The app follows [MIT's license](https://github.com/UBC-MDS/Movie_Selection/blob/main/LICENSE) and the source code can be found on [GitHub](https://github.com/UBC-MDS/Movie_Selection).
+            """
         ),
         html.P(
             f"""The app was last updated on {datetime.datetime.now().date()}.
@@ -255,10 +277,17 @@ sidebar = html.Div(
     style=SIDEBAR_STYLE,
     className="bg-primary text-white",
 )
+
 app.layout = html.Div([sidebar, content])
 
-# Set up callbacks/backend
+def color_map(studios, primary_list, secondary_list):
+    if studios in primary_list:
+        return 1
+    if studios in secondary_list:
+        return 2
+    return 0
 
+# Set up callbacks/backend
 
 @app.callback(
     Output("vote-plot", "figure"),
@@ -278,9 +307,36 @@ app.layout = html.Div([sidebar, content])
     Input("revenue-plot", "selectedData"),
     Input("vote-plot", "selectedData"),
 )
-def plot_altair(
+def app_builder(
     xgenre, budget, revenue_selected, vote_selected
-):  # to add xbudget later
+):  
+    """The function to return all call-back for the app given inputs from end-users
+
+    Parameters
+    ----------
+    xgenre : str
+        the chosen genre by user
+    budget : list
+        the chosen budget range specified by user in a list of lower-bound and upper-bound numbers
+    revenue_selected : str
+        the name of the studio selected under revenue plot
+    vote_selected : str
+        the name of the studio selected under vote plot
+
+    Returns
+    -------
+    figure/plot object
+        vote boxplot, revenue boxplot, scatter plot
+    float
+        average revenue, average vote, average vote count, average profit
+    str:
+        titles for the respective plot
+    DashTable:
+        a table of most popular movies
+    """
+    
+    
+    # to add xbudget later
     studios_by_revenue = (
         movies.groupby("studios")["revenue"].median().sort_values().index.tolist()
     )
@@ -295,12 +351,39 @@ def plot_altair(
     vote_count = str(round(filtered_movies["vote_count"].mean()))
 
     # Genre graphs
+    
+    studios_list = []
+    studios_str = ""
+    revenue_list = []
+    vote_list = []
+
+    if revenue_selected is not None:
+        revenue_list = [point["y"] for point in revenue_selected["points"]]
+        studios_list += revenue_list
+        studios_list = list(set(studios_list))
+        studios_str = "for the Studios: "
+        studios_str += ", ".join(studios_list)
+    if vote_selected is not None:
+        vote_list = [point["y"] for point in vote_selected["points"]]
+        studios_list += vote_list
+        studios_list = list(set(studios_list))
+        studios_str = "for the Studios: "
+        studios_str += ", ".join(studios_list)
+
+    if not studios_list:
+        studios_list = filtered_movies.studios.unique()
+
+    studio_movies = filtered_movies[filtered_movies["studios"].isin(studios_list)]
 
     vote_chart = px.box(
         filtered_movies,
         x="vote_average",
         y="studios",
         labels={"studios": "Studios", "vote_average": "Vote Average"},
+        boxmode='overlay',
+        color=filtered_movies.studios.apply(color_map, args=(vote_list, revenue_list)),
+        category_orders={'color': [0,1,2]},
+        color_discrete_map={0: 'grey',1: '#1f77b4',2: 'skyblue'}
     )
     vote_chart.add_bar(
         x=[filtered_movies.vote_average.max()] * filtered_movies.studios.nunique(),
@@ -317,16 +400,20 @@ def plot_altair(
         line_dash="dash",
         line_color="green",
         annotation_text="Mean Vote Average",
-        annotation_position="top right",
+        annotation_position="top",
         annotation_font_color="green",
         annotation_font_size=10,
     )
-    vote_chart.update_layout(clickmode="event+select")
+    vote_chart.update_layout(clickmode="event+select", showlegend=False, yaxis_categoryorder = 'category ascending')
     revenue_chart = px.box(
         filtered_movies,
         x="revenue",
         y="studios",
         labels={"studios": "Studios", "revenue": "Revenue (US$ mil)"},
+        boxmode='overlay',
+        color=filtered_movies.studios.apply(color_map, args=(revenue_list, vote_list)),
+        category_orders={'color': [0,1,2]},
+        color_discrete_map={0: 'grey',1: '#1f77b4',2: 'skyblue'}
     )
     revenue_chart.add_bar(
         x=[filtered_movies.revenue.max()] * filtered_movies.studios.nunique(),
@@ -343,41 +430,27 @@ def plot_altair(
         line_dash="dash",
         line_color="green",
         annotation_text="Mean Revenue",
-        annotation_position="top right",
+        annotation_position="top",
         annotation_font_color="green",
         annotation_font_size=10,
     )
 
-    revenue_chart.update_layout(clickmode="event+select")
+    revenue_chart.update_layout(clickmode="event+select", showlegend=False, yaxis_categoryorder = 'category ascending')
 
-    studios_list = []
-    studios_str = ""
-
-    if revenue_selected is not None:
-        studios_list += [point["y"] for point in revenue_selected["points"]]
-        studios_str = "for the Studios: "
-        studios_str += ", ".join(studios_list)
-    if vote_selected is not None:
-        studios_list += [point["y"] for point in vote_selected["points"]]
-        studios_str = "for the Studios: "
-        studios_str += ", ".join(studios_list)
-
-    if not studios_list:
-        studios_list = filtered_movies.studios.unique()
-
-    studio_movies = filtered_movies[filtered_movies["studios"].isin(studios_list)]
     vote_scatter_chart = px.scatter(
         studio_movies,
         x="vote_average",
         y="vote_count",
         labels={"vote_count": "Vote Count", "vote_average": "Vote Average"},
+        hover_name="title"
     )
 
-    top_movies_df = (studio_movies.nlargest(10, ["vote_average"]))[
+    top_movies_df = (studio_movies.nlargest(15, ["vote_average"]))[
         ["title", "vote_average", "profit", "runtime"]
     ]
 
-    top_movies_df.profit = round(top_movies_df.profit, 3)
+    top_movies_df.profit = round(top_movies_df.profit, 2)
+    top_movies_df.vote_average = round(top_movies_df.vote_average, 2)
     top_movies_df.rename(
         columns={
             "title": "Title",
@@ -387,6 +460,8 @@ def plot_altair(
         },
         inplace=True,
     )
+    
+    top_movies_df['Vote Average'] = top_movies_df['Vote Average'].map(lambda x: '{0:.2f}'.format(x))
 
     # if studios_list != filtered_movies.studios.unique():
     #     studios_str = "for the Studios: "
@@ -404,9 +479,28 @@ def plot_altair(
         average_vote,
         vote_count,
         average_profit,
-        dbc.Table.from_dataframe(
-            top_movies_df, striped=True, bordered=True, hover=True
-        ),
+        #dbc.Table.from_dataframe(
+        #   top_movies_df, striped=True, bordered=True, hover=True
+        #),
+        dt.DataTable(
+            data = top_movies_df.to_dict('rows'),
+            columns = [{"id": x, "name": x} for x in top_movies_df.columns],
+            sort_action='native',
+            style_cell={'textAlign': 'right', 'font_size': '12px', 'font-family':'Open Sans'},
+            style_cell_conditional=[
+                {
+                    'if': {'column_id': 'Title'},
+                    'textAlign': 'left'
+                }
+            ],
+            style_header={
+                'backgroundColor': 'rgb(230, 230, 230)',
+                'fontWeight': 'bold',
+                'font_size': '14px',
+                'font-family':'Open Sans'
+            },
+            style_as_list_view=True,
+        )
     )
 
 
