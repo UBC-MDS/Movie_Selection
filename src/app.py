@@ -296,11 +296,33 @@ def plot_altair(
 
     # Genre graphs
 
+    
+    studios_list = []
+    studios_str = ""
+
+    if revenue_selected is not None:
+        studios_list += [point["y"] for point in revenue_selected["points"]]
+        studios_str = "for the Studios: "
+        studios_str += ", ".join(studios_list)
+    if vote_selected is not None:
+        studios_list += [point["y"] for point in vote_selected["points"]]
+        studios_str = "for the Studios: "
+        studios_str += ", ".join(studios_list)
+
+    if not studios_list:
+        studios_list = filtered_movies.studios.unique()
+
+    studio_movies = filtered_movies[filtered_movies["studios"].isin(studios_list)]
+
     vote_chart = px.box(
         filtered_movies,
         x="vote_average",
         y="studios",
         labels={"studios": "Studios", "vote_average": "Vote Average"},
+        boxmode='overlay',
+        color=(filtered_movies.studios.isin(studios_list)).astype('int'),
+        category_orders={'color': [0,1]},
+        color_discrete_sequence=['grey', '#1f77b4']
     )
     vote_chart.add_bar(
         x=[filtered_movies.vote_average.max()] * filtered_movies.studios.nunique(),
@@ -321,12 +343,16 @@ def plot_altair(
         annotation_font_color="green",
         annotation_font_size=10,
     )
-    vote_chart.update_layout(clickmode="event+select")
+    vote_chart.update_layout(clickmode="event+select", showlegend=False, yaxis_categoryorder = 'category ascending')
     revenue_chart = px.box(
         filtered_movies,
         x="revenue",
         y="studios",
         labels={"studios": "Studios", "revenue": "Revenue (US$ mil)"},
+        boxmode='overlay',
+        color=(filtered_movies.studios.isin(studios_list)).astype('int'),
+        category_orders={'color': [0,1]},
+        color_discrete_sequence=['grey', '#1f77b4']
     )
     revenue_chart.add_bar(
         x=[filtered_movies.revenue.max()] * filtered_movies.studios.nunique(),
@@ -348,24 +374,8 @@ def plot_altair(
         annotation_font_size=10,
     )
 
-    revenue_chart.update_layout(clickmode="event+select")
+    revenue_chart.update_layout(clickmode="event+select", showlegend=False, yaxis_categoryorder = 'category ascending')
 
-    studios_list = []
-    studios_str = ""
-
-    if revenue_selected is not None:
-        studios_list += [point["y"] for point in revenue_selected["points"]]
-        studios_str = "for the Studios: "
-        studios_str += ", ".join(studios_list)
-    if vote_selected is not None:
-        studios_list += [point["y"] for point in vote_selected["points"]]
-        studios_str = "for the Studios: "
-        studios_str += ", ".join(studios_list)
-
-    if not studios_list:
-        studios_list = filtered_movies.studios.unique()
-
-    studio_movies = filtered_movies[filtered_movies["studios"].isin(studios_list)]
     vote_scatter_chart = px.scatter(
         studio_movies,
         x="vote_average",
