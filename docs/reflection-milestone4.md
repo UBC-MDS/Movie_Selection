@@ -4,6 +4,9 @@ _Milestone 4_
 
 _**Group 7**_
 
+## Choice of programming language and plotting library
+For this milestone, we chose to use Python over R for the easiness of deployment on heroku. We chose to use Python + plotly to deliver our dashboard for the benefit of flexibility in implementation and fluency in layout designing. 
+
 ## What we have implemented
 We implemented additional features per TA and peer feedback for our app in this milestone. We migrated our plotting library from altair to plotly. By incorporating the plotly plots, we improved the aesthetics of the app. Moreover, we enabled the click interaction on the studio boxplots to filter the following scatter plot/table by selected studio. This helps complete the story flow and adds complexity to our app. In addition, we added the mean revenue and mean vote average vertical lines in the studio boxplots so that user could compare which studio is doing better or worse than average. We stacked the voting scatter plot and the table so that the app visualizes nice in one full page. We added 2 more summary cards `average profit` and `vote count` so that more numeric summaries are displayed and the app has better aesthetics. We also made other efforts to improve the general aesthetics. 
 
