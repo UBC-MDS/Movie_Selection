@@ -130,7 +130,7 @@ studio_graphs = dbc.CardDeck(
         dbc.Card(
             [
                 dbc.CardHeader(html.H4(id="table-title")),
-                dbc.CardBody(html.Div(id="movies-data-frame")),
+                dbc.CardBody([html.Div(id="movies-data-frame")]),
             ],
             color="info",
             outline=True,
@@ -178,6 +178,23 @@ studio_graphs = dbc.CardDeck(
 #     ]
 # )
 
+studio_guide_bar = dbc.Card(
+    [
+        dbc.CardHeader(
+            dcc.Markdown(
+                """
+                To view the Voting Profile and Most popular movies for a particular studio, please click on its boxplot. 
+                You can change your studio of choice by clicking another boxplot.
+                To unselect the studio and revert to general view, kindly refresh the app and select the relevant genre & budget range.
+        
+                """
+            )    
+        ),
+    ],
+    color="info",
+    outline=True,
+)
+
 content = html.Div(
     [
         cards,
@@ -185,15 +202,16 @@ content = html.Div(
         html.Br(),
         genre_graphs,
         html.Br(),
+        studio_guide_bar,
         html.Br(),
         studio_graphs,
         html.Hr(),
         dcc.Markdown(
             """
-    This app was made by Group7 Consulting Co using [data](https://github.com/UBC-MDS/Movie_Selection/blob/main/data/raw/lab2-movies.json) compiled from a [Kaggle dataset](https://www.kaggle.com/rounakbanik/the-movies-dataset?select=movies_metadata.csv) by [Joel Ostblom](https://github.com/joelostblom) with permission. 
-    Our team includes [Alex](https://github.com/athy9193), [Asma](https://github.com/anodaini), [Peter](https://github.com/xudongyang2) and [Vignesh](https://github.com/vigneshRajakumar).
-    The app follows [MIT's license](https://github.com/UBC-MDS/Movie_Selection/blob/main/LICENSE) and the source code can be found on [GitHub](https://github.com/UBC-MDS/Movie_Selection).
-    """
+            This app was made by Group7 Consulting Co using [data](https://github.com/UBC-MDS/Movie_Selection/blob/main/data/raw/lab2-movies.json) compiled from a [Kaggle dataset](https://www.kaggle.com/rounakbanik/the-movies-dataset?select=movies_metadata.csv) by [Joel Ostblom](https://github.com/joelostblom) with permission. 
+            Our team includes [Alex](https://github.com/athy9193), [Asma](https://github.com/anodaini), [Peter](https://github.com/xudongyang2) and [Vignesh](https://github.com/vigneshRajakumar).
+            The app follows [MIT's license](https://github.com/UBC-MDS/Movie_Selection/blob/main/LICENSE) and the source code can be found on [GitHub](https://github.com/UBC-MDS/Movie_Selection).
+            """
         ),
         html.P(
             f"""The app was last updated on {datetime.datetime.now().date()}.
@@ -256,6 +274,7 @@ sidebar = html.Div(
     style=SIDEBAR_STYLE,
     className="bg-primary text-white",
 )
+
 app.layout = html.Div([sidebar, content])
 
 # Set up callbacks/backend
@@ -281,7 +300,34 @@ app.layout = html.Div([sidebar, content])
 )
 def plot_altair(
     xgenre, budget, revenue_selected, vote_selected
-):  # to add xbudget later
+):  
+    """The function to return all call-back for the app given inputs from end-users
+
+    Parameters
+    ----------
+    xgenre : str
+        the chosen genre by user
+    budget : list
+        the chosen budget range specified by user in a list of lower-bound and upper-bound numbers
+    revenue_selected : str
+        the name of the studio selected under revenue plot
+    vote_selected : str
+        the name of the studio selected under vote plot
+
+    Returns
+    -------
+    figure/plot object
+        vote boxplot, revenue boxplot, scatter plot
+    float
+        average revenue, average vote, average vote count, average profit
+    str:
+        titles for the respective plot
+    DashTable:
+        a table of most popular movies
+    """
+    
+    
+    # to add xbudget later
     studios_by_revenue = (
         movies.groupby("studios")["revenue"].median().sort_values().index.tolist()
     )
@@ -384,11 +430,12 @@ def plot_altair(
         hover_name="title"
     )
 
-    top_movies_df = (studio_movies.nlargest(10, ["vote_average"]))[
+    top_movies_df = (studio_movies.nlargest(15, ["vote_average"]))[
         ["title", "vote_average", "profit", "runtime"]
     ]
 
-    top_movies_df.profit = round(top_movies_df.profit, 3)
+    top_movies_df.profit = round(top_movies_df.profit, 2)
+    top_movies_df.vote_average = round(top_movies_df.vote_average, 2)
     top_movies_df.rename(
         columns={
             "title": "Title",
@@ -398,6 +445,8 @@ def plot_altair(
         },
         inplace=True,
     )
+    
+    top_movies_df['Vote Average'] = top_movies_df['Vote Average'].map(lambda x: '{0:.2f}'.format(x))
 
     # if studios_list != filtered_movies.studios.unique():
     #     studios_str = "for the Studios: "
@@ -415,9 +464,28 @@ def plot_altair(
         average_vote,
         vote_count,
         average_profit,
-        dbc.Table.from_dataframe(
-            top_movies_df, striped=True, bordered=True, hover=True
-        ),
+        #dbc.Table.from_dataframe(
+        #   top_movies_df, striped=True, bordered=True, hover=True
+        #),
+        dt.DataTable(
+            data = top_movies_df.to_dict('rows'),
+            columns = [{"id": x, "name": x} for x in top_movies_df.columns],
+            sort_action='native',
+            style_cell={'textAlign': 'right', 'font_size': '12px', 'font-family':'Open Sans'},
+            style_cell_conditional=[
+                {
+                    'if': {'column_id': 'Title'},
+                    'textAlign': 'left'
+                }
+            ],
+            style_header={
+                'backgroundColor': 'rgb(230, 230, 230)',
+                'fontWeight': 'bold',
+                'font_size': '14px',
+                'font-family':'Open Sans'
+            },
+            style_as_list_view=True,
+        )
     )
 
 
