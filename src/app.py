@@ -280,8 +280,14 @@ sidebar = html.Div(
 
 app.layout = html.Div([sidebar, content])
 
-# Set up callbacks/backend
+def color_map(studios, primary_list, secondary_list):
+    if studios in primary_list:
+        return 1
+    if studios in secondary_list:
+        return 2
+    return 0
 
+# Set up callbacks/backend
 
 @app.callback(
     Output("vote-plot", "figure"),
@@ -348,13 +354,19 @@ def app_builder(
     
     studios_list = []
     studios_str = ""
+    revenue_list = []
+    vote_list = []
 
     if revenue_selected is not None:
-        studios_list += [point["y"] for point in revenue_selected["points"]]
+        revenue_list = [point["y"] for point in revenue_selected["points"]]
+        studios_list += revenue_list
+        studios_list = list(set(studios_list))
         studios_str = "for the Studios: "
         studios_str += ", ".join(studios_list)
     if vote_selected is not None:
-        studios_list += [point["y"] for point in vote_selected["points"]]
+        vote_list = [point["y"] for point in vote_selected["points"]]
+        studios_list += vote_list
+        studios_list = list(set(studios_list))
         studios_str = "for the Studios: "
         studios_str += ", ".join(studios_list)
 
@@ -369,9 +381,9 @@ def app_builder(
         y="studios",
         labels={"studios": "Studios", "vote_average": "Vote Average"},
         boxmode='overlay',
-        color=(filtered_movies.studios.isin(studios_list)).astype('int'),
-        category_orders={'color': [0,1]},
-        color_discrete_sequence=['grey', '#1f77b4']
+        color=filtered_movies.studios.apply(color_map, args=(vote_list, revenue_list)),
+        category_orders={'color': [0,1,2]},
+        color_discrete_map={0: 'grey',1: '#1f77b4',2: 'skyblue'}
     )
     vote_chart.add_bar(
         x=[filtered_movies.vote_average.max()] * filtered_movies.studios.nunique(),
@@ -399,9 +411,9 @@ def app_builder(
         y="studios",
         labels={"studios": "Studios", "revenue": "Revenue (US$ mil)"},
         boxmode='overlay',
-        color=(filtered_movies.studios.isin(studios_list)).astype('int'),
-        category_orders={'color': [0,1]},
-        color_discrete_sequence=['grey', '#1f77b4']
+        color=filtered_movies.studios.apply(color_map, args=(revenue_list, vote_list)),
+        category_orders={'color': [0,1,2]},
+        color_discrete_map={0: 'grey',1: '#1f77b4',2: 'skyblue'}
     )
     revenue_chart.add_bar(
         x=[filtered_movies.revenue.max()] * filtered_movies.studios.nunique(),
