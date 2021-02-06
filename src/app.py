@@ -185,6 +185,7 @@ studio_guide_bar = dbc.Card(
                 """
                 To view the Voting Profile and Most popular movies for a particular studio, please click on its boxplot. 
                 You can change your studio of choice by clicking another boxplot.
+                
                 To unselect the studio and revert to general view, kindly refresh the app and select the relevant genre & budget range.
         
                 """
@@ -298,7 +299,7 @@ app.layout = html.Div([sidebar, content])
     Input("revenue-plot", "selectedData"),
     Input("vote-plot", "selectedData"),
 )
-def plot_altair(
+def app_builder(
     xgenre, budget, revenue_selected, vote_selected
 ):  
     """The function to return all call-back for the app given inputs from end-users
