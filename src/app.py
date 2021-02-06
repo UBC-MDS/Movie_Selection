@@ -184,10 +184,12 @@ studio_guide_bar = dbc.Card(
             dcc.Markdown(
                 """
                 To view the Voting Profile and Most popular movies for a particular studio, please click on its boxplot. 
-                You can change your studio of choice by clicking another boxplot.
-                
-                To unselect the studio and revert to general view, kindly refresh the app and select the relevant genre & budget range.
-        
+                The dark blue shade would be on the chart you selected, the light blue will be for the corresponding change of the other chart.
+
+                To unselect the studios and revert to general view, please double click on the box plot.
+
+                You can change your studio of choice by clicking another boxplot. 
+                        
                 """
             )    
         ),
