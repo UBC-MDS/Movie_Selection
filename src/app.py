@@ -348,12 +348,12 @@ def app_builder(
     studios_str = ""
 
     if revenue_selected is not None:
-        studios_list = [point["y"] for point in revenue_selected["points"]]
-        studios_str = "for "
+        studios_list += [point["y"] for point in revenue_selected["points"]]
+        studios_str = "for the Studios: "
         studios_str += ", ".join(studios_list)
     if vote_selected is not None:
-        studios_list = [point["y"] for point in vote_selected["points"]]
-        studios_str = "for "
+        studios_list += [point["y"] for point in vote_selected["points"]]
+        studios_str = "for the Studios: "
         studios_str += ", ".join(studios_list)
 
     if not studios_list:
