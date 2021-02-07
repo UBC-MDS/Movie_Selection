@@ -139,56 +139,17 @@ studio_graphs = dbc.CardDeck(
 )
 
 
-# studio_graphs = html.Div(
-#     [
-#         dbc.Row(
-#             [
-#                 dbc.Col(
-#                     dbc.Card(
-#                         [
-#                             dbc.CardHeader(html.H4(id="vote-scatter-title")),
-#                             dbc.CardBody(
-#                                 dcc.Graph(
-#                                     id="vote-scatter-plot",
-#                                 )
-#                             ),
-#                         ],
-#                         color="info",
-#                         outline=True,
-#                     ),
-#                 )
-#             ]
-#         ),
-#         html.Br(),
-#         html.Br(),
-#         dbc.Row(
-#             [
-#                 dbc.Col(
-#                     dbc.Card(
-#                         [
-#                             dbc.CardHeader(html.H4(id="table-title")),
-#                             dbc.CardBody(html.Div(id="movies-data-frame")),
-#                         ],
-#                         color="info",
-#                         outline=True,
-#                     )
-#                 )
-#             ]
-#         ),
-#     ]
-# )
-
 studio_guide_bar = dbc.Card(
     [
         dbc.CardHeader(
             dcc.Markdown(
                 """
                 To view the Voting Profile and Most popular movies for a particular studio, please click on its boxplot. 
-                The dark blue shade would be on the chart you selected, the light blue will be for the corresponding change of the other chart.
+                The boxplot of studio you selected will be shaded in dark blue, the light blue shade will be for the corresponding change of the other chart.
 
-                To unselect the studios and revert to general view, please double click on the box plot.
+                To unselect the studios and revert to general view, please **double click** on the chart with the dark blue selected boxplots.
 
-                You can change your studio of choice by clicking another boxplot. 
+                You can change the studio(s) of choice by clicking another boxplot or select multiple boxplots by pressing Shift while clicking on other boxplots.
                         
                 """
             )    
@@ -201,7 +162,6 @@ studio_guide_bar = dbc.Card(
 content = html.Div(
     [
         cards,
-        html.Br(),
         html.Br(),
         genre_graphs,
         html.Br(),
@@ -335,8 +295,6 @@ def app_builder(
         a table of most popular movies
     """
     
-    
-    # to add xbudget later
     studios_by_revenue = (
         movies.groupby("studios")["revenue"].median().sort_values().index.tolist()
     )
@@ -351,7 +309,6 @@ def app_builder(
     vote_count = str(round(filtered_movies["vote_count"].mean()))
 
     # Genre graphs
-    
     studios_list = []
     studios_str = ""
     revenue_list = []
@@ -385,6 +342,7 @@ def app_builder(
         category_orders={'color': [0,1,2]},
         color_discrete_map={0: 'grey',1: '#1f77b4',2: 'skyblue'}
     )
+
     vote_chart.add_bar(
         x=[filtered_movies.vote_average.max()] * filtered_movies.studios.nunique(),
         y=filtered_movies.studios.unique(),
@@ -404,6 +362,7 @@ def app_builder(
         annotation_font_color="green",
         annotation_font_size=10,
     )
+
     vote_chart.update_layout(clickmode="event+select", showlegend=False, yaxis_categoryorder = 'category ascending')
     revenue_chart = px.box(
         filtered_movies,
@@ -415,6 +374,7 @@ def app_builder(
         category_orders={'color': [0,1,2]},
         color_discrete_map={0: 'grey',1: '#1f77b4',2: 'skyblue'}
     )
+
     revenue_chart.add_bar(
         x=[filtered_movies.revenue.max()] * filtered_movies.studios.nunique(),
         y=filtered_movies.studios.unique(),
@@ -437,6 +397,7 @@ def app_builder(
 
     revenue_chart.update_layout(clickmode="event+select", showlegend=False, yaxis_categoryorder = 'category ascending')
 
+    # Studio-specific graphs
     vote_scatter_chart = px.scatter(
         studio_movies,
         x="vote_average",
@@ -445,7 +406,7 @@ def app_builder(
         hover_name="title"
     )
 
-    top_movies_df = (studio_movies.nlargest(15, ["vote_average"]))[
+    top_movies_df = (studio_movies.drop_duplicates(subset = ["title"]).nlargest(15, ["vote_average"]))[
         ["title", "vote_average", "profit", "runtime"]
     ]
 
@@ -463,9 +424,6 @@ def app_builder(
     
     top_movies_df['Vote Average'] = top_movies_df['Vote Average'].map(lambda x: '{0:.2f}'.format(x))
 
-    # if studios_list != filtered_movies.studios.unique():
-    #     studios_str = "for the Studios: "
-    #     studios_str += ", ".join(studios_list)
 
     return (
         vote_chart,
@@ -479,14 +437,17 @@ def app_builder(
         average_vote,
         vote_count,
         average_profit,
-        #dbc.Table.from_dataframe(
-        #   top_movies_df, striped=True, bordered=True, hover=True
-        #),
         dt.DataTable(
             data = top_movies_df.to_dict('rows'),
             columns = [{"id": x, "name": x} for x in top_movies_df.columns],
             sort_action='native',
-            style_cell={'textAlign': 'right', 'font_size': '12px', 'font-family':'Open Sans'},
+            style_cell={
+                'textAlign': 'right', 
+                'font_size': '13px', 
+                'font-family':'Open Sans',
+                'whiteSpace': 'normal', 
+                'height': 'auto'
+                },
             style_cell_conditional=[
                 {
                     'if': {'column_id': 'Title'},
