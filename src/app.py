@@ -145,7 +145,7 @@ studio_guide_bar = dbc.Card(
             dcc.Markdown(
                 """
                 To view the Voting Profile and Most popular movies for a particular studio, please click on its boxplot. 
-                The dark blue boxplot would be on the chart you selected, the light blue is for the corresponding change of the other chart.
+                The boxplot of studio you selected will be shaded in dark blue, the light blue shade will be for the corresponding change of the other chart.
 
                 To unselect the studios and revert to general view, please **double click** on the chart with the dark blue selected boxplots.
 
